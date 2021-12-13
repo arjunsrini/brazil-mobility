@@ -1,0 +1,430 @@
+---
+title: "scratch"
+author: "Arjun Srinivasan"
+date: "2/28/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r imports}
+library(ggplot2)
+library(ggridges)
+```
+
+```{r installs}
+install.packages(c("tidyverse", "colorspace", "corrr",  "cowplot",
+                   "ggdark", "ggforce", "ggrepel", "ggridges", "ggsci",
+                   "ggtext", "ggthemes", "grid", "gridExtra", "patchwork",
+                   "rcartocolor", "scico", "showtext", "shiny",
+                   "plotly", "highcharter", "echarts4r"))
+```
+
+```{r palette}
+# presentation palette
+beamer_colors <- c(
+  `bone`        = "#ece2d0",
+  `light pink` = "#d5b9b2",
+  `blue`    = "#5ba3c2",
+  `rose` = "#a26769",
+  `byzantium` = "#582c4d")
+
+#' Function to extract drsimonj colors as hex codes
+#'
+#' @param ... Character names of beamer_colors 
+#'
+beamer_cols <- function(...) {
+  cols <- c(...)
+
+  if (is.null(cols))
+    return (beamer_colors)
+
+  beamer_colors[cols]
+}
+
+
+```
+
+
+```{r compare PNADs - data}
+raw_df <- read.csv("C:/Users/arjun/Dropbox/01 - Dartmouth/2020-21/ECON 64/paper/output/prelim_estimates.csv", header=TRUE)
+raw_df$yr <- factor(raw_df$year)
+
+```
+
+```{r compare PNADs, echo=FALSE}
+
+p<-ggplot(data=raw_df, aes(x=bc))
+
+p<-p+geom_ribbon(aes(ymin=lb, ymax=ub, fill = factor(yr, levels = c("2014","1996"))), linetype=1, alpha=0.7) 
+p<-p+scale_y_continuous(limits = c(36,45),breaks = 35:50)
+
+p<-p+labs(x = "Birth Cohort", y = "Expected Son Rank",
+       title = "Upward Mobility Estimates by Cohort and PNAD Survey Year")
+
+p<-p + theme(
+      axis.title.x = element_text(vjust=0.3),
+      axis.title.y = element_text(vjust=1.5)   
+          )
+
+p<-p+scale_fill_discrete(name="PNAD\nSurvey Year")
+ggsave("../output/plots/s_bias.png",p)
+# p
+
+
+```
+
+
+```{r}
+raw_df <- read.csv("C:/Users/arjun/Dropbox/01 - Dartmouth/2020-21/ECON 64/paper/output/bh_over_time.csv", header=TRUE)
+raw_df$type_mu <- paste(raw_df$type,raw_df$mu)
+```
+
+
+```{r son v daughter up, echo=FALSE}
+
+rdf1 <- subset(raw_df, mu=="mu0-50")
+
+
+p<-ggplot(data=rdf1, aes(x=bc))
+
+
+p<-p+geom_ribbon(aes(ymin=lb, ymax=ub, fill=type), alpha=0.7)
+
+p<-p+scale_y_continuous(limits = c(33,47),breaks = 33:47)
+p<-p+scale_x_continuous(breaks = c(1910,1920,1930,1940,1950,1960,1970,1980))
+
+p<-p+labs(x = "Birth Cohort", y = "Expected Child Rank",
+       title = "Upward Mobility Estimates Across Cohorts, 1910-1980")
+
+p<-p + theme(
+      axis.title.x = element_text(vjust=0.3),
+      axis.title.y = element_text(vjust=1.5)   
+          )
+p<-p+scale_fill_discrete(name="Measure")
+p
+ggsave("../output/plots/um_sonvd.png",p)
+
+```
+
+```{r son v daughter down}
+
+rdf2 <- subset(raw_df, mu=="mu50-100")
+
+
+p<-ggplot(data=rdf2, aes(x=bc))
+
+
+p<-p+geom_ribbon(aes(ymin=lb, ymax=ub, fill=type), alpha=0.7)
+
+p<-p+scale_y_continuous(limits = c(56,69),breaks = 56:69)
+p<-p+scale_x_continuous(breaks = c(1910,1920,1930,1940,1950,1960,1970,1980))
+
+p<-p+labs(x = "Birth Cohort", y = "Expected Child Rank",
+       title = "Downward Mobility Estimates Across Cohorts, 1910-1980")
+
+p<-p + theme(
+      axis.title.x = element_text(vjust=0.3),
+      axis.title.y = element_text(vjust=1.5)   
+          )
+p<-p+scale_fill_discrete(name="Measure")
+p
+ggsave("../output/plots/dm_sonvd.png",p)
+
+```
+
+```{r race_data}
+raw_df <- read.csv("C:/Users/arjun/Dropbox/01 - Dartmouth/2020-21/ECON 64/paper/output/bh_by_race.csv", header=TRUE)
+
+raw_df$type_mu <- paste(raw_df$Race,raw_df$mu)
+
+rdf1 <- subset(raw_df, mu=="mu0-50")
+rdf2 <- subset(raw_df, mu=="mu50-100")
+
+```
+
+
+```{r mobility by race, echo=FALSE}
+p<-ggplot(data=rdf1, aes(x=bc))
+
+p<-p+geom_ribbon(aes(ymin=lb, ymax=ub, fill=Race), linetype=1, alpha=0.7)
+
+p<-p+labs(x = "Birth Cohort", y = "Expected Son Rank",
+       title = "Father-Son Upward Mobility by Race")
+
+p<-p+scale_y_continuous(limits = c(33,49),breaks = 33:49)
+p<-p+scale_x_continuous(breaks = c(1950,1955,1960,1965,1970,1975,1980))
+
+p<-p + theme(
+      axis.title.x = element_text(vjust=0.3),
+      axis.title.y = element_text(vjust=1.5)   
+          )
+
+# p<-p+scale_fill_discrete(name="Measure")
+p
+ggsave("../output/plots/um_by_race.png",p)
+
+```
+
+
+```{r downmobility by race, echo=FALSE}
+p<-ggplot(data=rdf2, aes(x=bc))
+
+p<-p+geom_ribbon(aes(ymin=lb, ymax=ub, fill=Race), linetype=1, alpha=0.7)
+
+p<-p+labs(x = "Birth Cohort", y = "Expected Son Rank",
+       title = "Father-Son Downward Mobility by Race")
+
+p<-p+scale_y_continuous(limits = c(53,73),breaks = 53:73)
+p<-p+scale_x_continuous(breaks = c(1950,1955,1960,1965,1970,1975,1980))
+
+p<-p + theme(
+      axis.title.x = element_text(vjust=0.3),
+      axis.title.y = element_text(vjust=1.5)   
+          )
+
+# p<-p+scale_fill_discrete(name="Measure")
+p
+ggsave("../output/plots/dm_by_race.png",p)
+
+```
+
+
+```{r rankrank}
+
+rankdf <- read.csv("C:/Users/arjun/Dropbox/01 - Dartmouth/2020-21/ECON 64/paper/output/rank-gradient.csv", header=TRUE)
+
+rankdf$ub <- rankdf$coef + 1.96*rankdf$se
+rankdf$lb <- rankdf$coef - 1.96*rankdf$se
+
+p<-ggplot(data=rankdf, aes(x=bc,y=coef))
+
+p<-p+geom_line()
+p<-p+geom_ribbon(aes(ymin=lb, ymax=ub), linetype=1, alpha=0.7)
+# 
+p<-p+labs(x = "Birth Cohort", y = "Rank-Rank Gradient",
+       title = "Father-Son Rank-Rank Gradient by Birth Cohorts")
+# 
+p<-p+scale_y_continuous(limits = c(0.43,0.66),breaks = )
+p<-p+scale_x_continuous(breaks = c(1910,1920,1930,1940,1950,1960,1970,1980))
+# 
+# p<-p + theme(
+#       axis.title.x = element_text(vjust=0.3),
+#       axis.title.y = element_text(vjust=1.5)   
+#           )
+
+# p<-p+scale_fill_discrete(name="Measure")
+p
+ggsave("../output/plots/rankrank.png",p)
+
+```
+
+```{r p25}
+p25df <- read.csv("C:/Users/arjun/Dropbox/01 - Dartmouth/2020-21/ECON 64/paper/output/p25.csv", header=TRUE)
+
+# rankdf$ub <- rankdf$coef + 1.96*rankdf$se
+# rankdf$lb <- rankdf$coef - 1.96*rankdf$se
+
+p<-ggplot(data=rankdf, aes(x=bc))
+
+# p<-p+geom_line()
+p<-p+geom_ribbon(aes(ymin=lb, ymax=ub), linetype=1, alpha=0.7)
+# 
+p<-p+labs(x = "Birth Cohort", y = "p25",
+       title = "p25 by Birth Cohorts")
+# 
+p<-p+scale_y_continuous(limits = c(0.43,0.66),breaks = )
+p<-p+scale_x_continuous(breaks = c(1910,1920,1930,1940,1950,1960,1970,1980))
+# 
+# p<-p + theme(
+#       axis.title.x = element_text(vjust=0.3),
+#       axis.title.y = element_text(vjust=1.5)   
+#           )
+
+# p<-p+scale_fill_discrete(name="Measure")
+p
+ggsave("../output/plots/p25.png",p)
+```
+
+
+
+```{r mobility by race finer, echo=FALSE}
+
+raw_df <- read.csv("C:/Users/arjun/Dropbox/01 - Dartmouth/2020-21/ECON 64/paper/output/bh_by_race_finer.csv", header=TRUE)
+
+
+p<-ggplot(data=raw_df, aes(x=bc, colour=Race))
+# p<-p+scale_color_manual(values = c("#5BA3C2",
+                                   # "#FFFFFF"))
+
+
+p<-p+geom_ribbon(aes(ymin=lb, ymax=ub), linetype=1, alpha=0.2)
+# p<-p+geom_line(aes(y=lb))+geom_line(aes(y=ub))
+p<-p+scale_y_continuous(limits = c(33,49))
+# p<-p+scale_fill_manual(values=c("#ECE2D0","#D5B9B2"))
+# p<-p+scale_colour_manual(values=c('1996'='#5BA3C2','2014'='#D5B9B2'))
+
+# p<-p+ggtitle('Bottom Half Mobility Estimates by Cohort and PNAD Survey Year') 
+# + theme(plot.title = element_text(hjust = 0.5))
+# p<-p+labs(x="Birth Cohort", y="Bottom Half Mobility")
+p<-p+labs(x = "Birth Cohort", y = "Bottom Half Mobility",
+       title = "Mobility by race across cohorts, 1930-1980",
+       subtitle = "Bottom Half Mobility Estimates by Race and Cohort",
+       caption = "Data: PNAD 1996, 2014")
+
+p<-p + theme(
+      axis.title.x = element_text(vjust=0.3),
+      axis.title.y = element_text(vjust=1.5)   
+          )
+
+# p<-p+scale_color_discrete(name="PNAD\nSurvey Year")
+# p<-p+theme(legend.title=element_blank())
+p
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+# library(tidyverse)
+# library(foreign)
+library(readstata13)
+```
+
+```{r}
+pnadf <- read.dta13("C:/Users/arjun/Dropbox/01 - Dartmouth/2020-21/ECON 64/paper/data/pnad-full.dta")
+summary(pnadf)
+```
+
+```{r}
+ggplot(pnadf, aes(x = ed_bin, y = factor(cohort), fill = cohort)) +
+  geom_density_ridges(stat = "binline", bins = 4, scale = .9,
+                      draw_baseline = FALSE, show.legend = FALSE) +
+  theme_minimal() +
+  labs(x = "Son Education", y = "Cohort")
+```
+
+
+```{r}
+pnadf8 <- subset(pnadf, cohort==1980)
+ggplot(pnadf8, aes(x=ed_bin)) + geom_histogram(bins = 4)
+```
+
+
+```{r}
+library(geobr)
+library(sf)
+library(tmap)
+library(reshape)
+```
+
+```{r load geodata}
+states <- read_state(year=2014)
+
+```
+
+
+```{r load mob_by_state}
+
+mbs <- read.csv("C:/Users/arjun/Dropbox/01 - Dartmouth/2020-21/ECON 64/paper/output/bh_by_state.csv", header=TRUE)
+
+# mbs <- subset(mbs, bc==1970)
+mbs <- subset(mbs, ub!=".")
+mbs$code_state <- mbs$state
+mbs$ub <- as.numeric(mbs$ub)
+mbs$lb <- as.numeric(mbs$lb)
+mbs$meanb <- (mbs$ub + mbs$lb)/2
+
+widembs
+
+```
+
+```{r region}
+
+
+region <- read.csv("C:/Users/arjun/Dropbox/01 - Dartmouth/2020-21/ECON 64/paper/output/bh_by_state.csv", header=TRUE)
+
+# mbs <- subset(mbs, ub!=".")
+region$code_region <- region$state
+region$ub <- as.numeric(region$ub)
+region$lb <- as.numeric(region$lb)
+region$meanb <- (region$ub + region$lb)/2
+
+region1950 <- subset(region, bc==1950)
+region1960 <- subset(region, bc==1960)
+region1970 <- subset(region, bc==1970)
+region1980 <- subset(region, bc==1980)
+
+w <- reshape(region, 
+  timevar = "bc",
+  idvar = c("code_region"),
+  direction = "wide")
+
+```
+
+
+
+```{r merge data}
+
+mapdat <- merge(states,w,by="code_region")
+mapdat5 <- merge(states,region1950,by="code_region")
+mapdat6 <- merge(states,region1960,by="code_region")
+mapdat7 <- merge(states,region1970,by="code_region")
+mapdat8 <- merge(states,region1980,by="code_region")
+
+l <- reshape(mapdat, 
+  varying = c("meanb.1950", "meanb.1960", "meanb.1970", "meanb.1980"), 
+  v.names = "meanb",
+  timevar = "Cohort", 
+  times = c("1950", "1960", "1970", "1980"), 
+  # new.row.names = 1:25,
+  direction = "long")
+
+
+
+```
+
+
+
+```{r maps}
+
+map_br <- tm_shape(states) + tm_borders()
+# # class(map_br)
+breaks = c(33, 35, 37, 39, 41, 43, 45, 47, 49)
+# 
+# map_br_5 = map_br + tm_shape(mapdat5) + tm_fill(col = "meanb", title = expression(mu[0]^50), breaks = breaks) + tm_layout(legend.show=FALSE) 
+# map_br_6 = map_br + tm_shape(mapdat6) + tm_fill(col = "meanb", title = expression(mu[0]^50), breaks = breaks) + tm_layout(legend.show=FALSE)
+# map_br_7 = map_br + tm_shape(mapdat7) + tm_fill(col = "meanb", title = "1970 Mobility", breaks = breaks) + tm_layout(legend.show=FALSE)
+# map_br_8 = map_br + tm_shape(mapdat8) + tm_fill(col = "meanb", title = "1980 Mobility", breaks = breaks) + tm_layout(legend.show=FALSE)
+# leg = map_br + tm_shape(mapdat5) + tm_fill(col = "meanb", title = expression(mu[0]^50), breaks = breaks) + tm_layout(legend.only=TRUE)
+# leg
+# tmap_arrange(map_br_5, map_br_6, map_br_7, map_br_8)
+
+fullmap = map_br + tm_shape(l) + tm_legend(position = c("center", "center"), frame=TRUE) + tm_layout(main.title="Upward Mobility by Region and Time",main.title.size=1.15, legend.outside.size =0.13, legend.width=0.77, legend.title.size=0.6) + tm_fill(col = "meanb", palette="plasma", n=8, title = "Expected Son Rank") + tm_facets(by = "Cohort", nrow = 2)
+fullmap
+tmap_save(fullmap, "../output/plots/um_by_region.png")
+
+```
+
+```{r gif}
+
+urb_anim = tm_shape(l) + tm_legend(position = c("left", "bottom"), frame=TRUE) + tm_layout(main.title="Upward Mobility by Region and Time",main.title.size=1.15, legend.outside.size =0.14, bg.color = "white", panel.labels = c('1950','1960','1970','1980')) + tm_fill(col = "meanb", palette="viridis", n=8, title = expression(mu[0]^50)) + tm_facets(along = "Cohort", free.coords = FALSE)
+print(urb_anim)
+tmap_animation(urb_anim, filename = "urb_anim.gif", delay = 50)
+
+
+
+```
+
+
+
+
+
