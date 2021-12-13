@@ -28,8 +28,6 @@ gen sed_bin = ed_bin if sex==0
 // gen ded_bin = ed_bin if sex==1
 
 gen_wt_ranks sed_bin, gen(son_ed_rank) weight(wt) by(cohort)
-
-
 // gen_wt_ranks ded_bin, gen(daughter_ed_rank) weight(wt) by(cohort)
 
 // setup output file

@@ -19,7 +19,6 @@ run $stex
 //load education data
 use "$pnadF"
 
-
 twoway (histogram ed_bin if race==2, width(1) color(green)) ///
        (histogram ed_bin if race==4, width(1) ///
 	   fcolor(none) lcolor(black)), legend(order(1 "White" 2 "Black" ))

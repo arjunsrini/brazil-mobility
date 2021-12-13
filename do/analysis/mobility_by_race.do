@@ -37,7 +37,6 @@ gen_wt_ranks sed_bin, gen(son_ed_rank) weight(wt) by(cohort2)
 cap erase $out_bh_race
 append_to_file using $out_bh_race, s(Race, bc, lb, ub, mu, number_moments)
 
-
 // /* prepare titling */
 local t2 White
 local t4 Black
